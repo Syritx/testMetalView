@@ -67,7 +67,7 @@ class Rendering: NSObject, MTKViewDelegate {
     let device: MTLDevice
     let mtkView: MTKView
     let commandQueue: MTLCommandQueue
-    
+        
     var vertexDescriptor: MTLVertexDescriptor!
     var renderPipeline: MTLRenderPipelineState!
     
@@ -76,7 +76,7 @@ class Rendering: NSObject, MTKViewDelegate {
     init(view: MTKView, device: MTLDevice) {
         self.mtkView = view
         self.device = device
-        self.commandQueue = device.makeCommandQueue() as! MTLCommandQueue
+        self.commandQueue = device.makeCommandQueue()!
         
         super.init()
         loadModel()
@@ -133,9 +133,9 @@ class Rendering: NSObject, MTKViewDelegate {
     func draw(in view: MTKView) {
         
         let modelMatrix = float4x4(rotationAbout: float3(0, 1, 0), by: -Float.pi / 6) *  float4x4(scaleBy: 2)
-        let viewMatrix = float4x4(translationBy: float3(0, 0, -2))
+        let viewMatrix = float4x4(translationBy: float3(0, 0, -33))
         let modelViewMatrix = viewMatrix * modelMatrix
-        
+                
         let aspectRatio = Float(view.drawableSize.width / view.drawableSize.height)
         let projectionMatrix = float4x4(perspectiveProjectionFov: Float.pi / 3, aspectRatio: aspectRatio, nearZ: 0.1, farZ: 100)
         
@@ -143,15 +143,14 @@ class Rendering: NSObject, MTKViewDelegate {
         
         let commandBuffer = commandQueue.makeCommandBuffer()
         if let renderPassDescriptor = view.currentRenderPassDescriptor, let drawable = view.currentDrawable {
-            commandBuffer?.present(drawable)
-            commandBuffer?.commit()
             let commandEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: renderPassDescriptor)
             
             for mesh in meshes {
                 let vertexBuffer = mesh.vertexBuffers.first!
                 commandEncoder?.setVertexBuffer(vertexBuffer.buffer, offset: vertexBuffer.offset, index: 0)
+                commandEncoder?.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: 1)
                 commandEncoder?.setRenderPipelineState(renderPipeline)
-             
+                
                 for submesh in mesh.submeshes {
                     let indexBuffer = submesh.indexBuffer
                     commandEncoder?.drawIndexedPrimitives(type: submesh.primitiveType,
@@ -160,8 +159,10 @@ class Rendering: NSObject, MTKViewDelegate {
                                                          indexBuffer: indexBuffer.buffer,
                                                          indexBufferOffset: indexBuffer.offset)
                 }
-                commandEncoder?.endEncoding()
             }
+            commandEncoder?.endEncoding()
+            commandBuffer?.present(drawable)
+            commandBuffer?.commit()
         }
     }
 }
