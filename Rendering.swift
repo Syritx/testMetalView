@@ -4,6 +4,8 @@ import ModelIO
 
 import simd
 
+//MARK: MATRICES
+
 extension float4x4 {
     init(scaleBy s: Float) {
         self.init(float4(s, 0, 0, 0),
@@ -49,11 +51,16 @@ extension float4x4 {
                   float4( 0,  0, wz,  0))
     }
 }
- 
+
+//MARK: SHADER CLASS
+
 struct Uniforms {
     var modelViewMatrix: float4x4
     var projectionMatrix: float4x4
 }
+
+
+//MARK: RENDERER CLASS
 
 class Rendering: NSObject, MTKViewDelegate {
     
@@ -76,6 +83,7 @@ class Rendering: NSObject, MTKViewDelegate {
         buildPipeline()
     }
     
+    //MARK: MODEL LOADER
     func loadModel() {
         let modelURL = Bundle.main.url(forResource: "container", withExtension: "obj")
         
@@ -121,6 +129,7 @@ class Rendering: NSObject, MTKViewDelegate {
         
     }
     
+    //MARK: RENDERING
     func draw(in view: MTKView) {
         
         let modelMatrix = float4x4(rotationAbout: float3(0, 1, 0), by: -Float.pi / 6) *  float4x4(scaleBy: 2)
