@@ -64,6 +64,10 @@ struct Uniforms {
 
 class Rendering: NSObject, MTKViewDelegate {
     
+    var rotation: Float = 0
+    public var position: float3 = float3(0,0,-45)
+    public let speed: Float = 2
+    
     let device: MTLDevice
     let mtkView: MTKView
     let commandQueue: MTLCommandQueue
@@ -81,7 +85,7 @@ class Rendering: NSObject, MTKViewDelegate {
         super.init()
         loadModel()
         buildPipeline()
-    }
+    }    
     
     //MARK: MODEL LOADER
     func loadModel() {
@@ -105,6 +109,7 @@ class Rendering: NSObject, MTKViewDelegate {
         }
     }
     
+    //MARK: PIPELINE
     func buildPipeline() {
         guard let library = device.makeDefaultLibrary() else { fatalError("cannot make library") }
         
@@ -132,8 +137,11 @@ class Rendering: NSObject, MTKViewDelegate {
     //MARK: RENDERING
     func draw(in view: MTKView) {
         
-        let modelMatrix = float4x4(rotationAbout: float3(0, 1, 0), by: -Float.pi / 6) *  float4x4(scaleBy: 2)
-        let viewMatrix = float4x4(translationBy: float3(0, 0, -33))
+        rotation += 0.5/Float(mtkView.preferredFramesPerSecond)
+        let angle = -rotation
+        
+        let modelMatrix = float4x4(rotationAbout: float3(0, 1, 0), by: angle) *  float4x4(scaleBy: 2)
+        let viewMatrix = float4x4(translationBy: position)
         let modelViewMatrix = viewMatrix * modelMatrix
                 
         let aspectRatio = Float(view.drawableSize.width / view.drawableSize.height)
